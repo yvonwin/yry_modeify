@@ -173,7 +173,6 @@ def morph_img(src_img, src_points, dst_img, dst_points, alpha=0.5):
 
 def face_merge(dst_img, src_img, out_img,
                face_area, alpha=0.75,
-               skin_buff=0, skin_detail=0, skin_p=0,
                blur_detail_x=None, blur_detail_y=None, mat_multiple=None):
     src_matrix, src_points, err = core.face_points(src_img)
     dst_matrix, dst_points, err = core.face_points(dst_img)
