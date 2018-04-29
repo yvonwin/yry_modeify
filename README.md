@@ -81,8 +81,11 @@ dst_matrix, dst_points, err = core.face_points(dst_img)
 * 注：src_points 已经 dst_points 传入参数为第一步获取的人脸关键点矩阵
 
 对齐采用“常规 Procrustes 分析法”
+
 具体算法来源：[matthewearl](http://matthewearl.github.io/2015/07/28/switching-eds-with-python/) 个人博客步骤2
+
 对齐结果：
+
 ![结果展示](/images/2282038-87b0d91ba49136da.gif)
 
 ### 三、再次取点后融合脸部
@@ -92,6 +95,7 @@ dst_matrix, dst_points, err = core.face_points(dst_img)
 dst_img = morph_img(src_img, src_points, dst_img, dst_points, alpha)
 ```
 融合结果：
+
 ![结果展示](/images/2282038-6f62bb9178d8ea54.jpg)
 
 具体的三角融合算法解说参考[这篇文章](https://www.learnopencv.com/face-morph-using-opencv-cpp-python/)
@@ -103,6 +107,7 @@ dst_img = morph_img(src_img, src_points, dst_img, dst_points, alpha)
 src_img = tran_src(src_img, src_points, dst_points, face_area)
 ```
 处理结果：
+
 ![结果展示](/images/2282038-13d70b5c2508afda.jpg)
 
 
@@ -134,5 +139,6 @@ def merge_img(src_img, dst_img, dst_matrix, dst_points, k_size=None, mat_multipl
     return cv2.seamlessClone(np.uint8(dst_img), src_img, face_mask, center, cv2.NORMAL_CLONE)
 ```
 函数示意图：
+
 ![步骤展示](/images/2282038-362be008f850ba22.jpg)
 
