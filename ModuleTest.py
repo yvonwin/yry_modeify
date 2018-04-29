@@ -10,6 +10,5 @@ if __name__ == '__main__':
                     out_img='images/output.jpg',
                     face_area=[50, 30, 500, 485],
                     alpha=0.75,
-                    blur_detail_x=15,
-                    blur_detail_y=10,
+                    k_size=(15, 10),
                     mat_multiple=0.95)

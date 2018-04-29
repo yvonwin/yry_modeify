@@ -121,7 +121,7 @@ def tran_src(src_img, src_points, dst_points, face_area=None):
     return res_img
 
 
-def merge_img(src_img, dst_img, dst_matrix, dst_points, blur_detail_x=None, blur_detail_y=None, mat_multiple=None):
+def merge_img(src_img, dst_img, dst_matrix, dst_points, k_size=None, mat_multiple=None):
     face_mask = np.zeros(src_img.shape, dtype=src_img.dtype)
 
     for group in core.OVERLAY_POINTS:
@@ -135,8 +135,8 @@ def merge_img(src_img, dst_img, dst_matrix, dst_points, blur_detail_x=None, blur
         mat = cv2.getRotationMatrix2D(center, 0, mat_multiple)
         face_mask = cv2.warpAffine(face_mask, mat, (face_mask.shape[1], face_mask.shape[0]))
 
-    if blur_detail_x and blur_detail_y:
-        face_mask = cv2.blur(face_mask, (blur_detail_x, blur_detail_y), center)
+    if k_size:
+        face_mask = cv2.blur(face_mask, k_size, center)
 
     return cv2.seamlessClone(np.uint8(dst_img), src_img, face_mask, center, cv2.NORMAL_CLONE)
 
@@ -173,15 +173,15 @@ def morph_img(src_img, src_points, dst_img, dst_points, alpha=0.5):
 
 def face_merge(dst_img, src_img, out_img,
                face_area, alpha=0.75,
-               blur_detail_x=None, blur_detail_y=None, mat_multiple=None):
+               k_size=None, mat_multiple=None):
     src_matrix, src_points, err = core.face_points(src_img)
     dst_matrix, dst_points, err = core.face_points(dst_img)
 
     src_img = cv2.imread(src_img, cv2.IMREAD_COLOR)
     dst_img = cv2.imread(dst_img, cv2.IMREAD_COLOR)
 
-    dst_img = transformation_points(src_img, src_matrix[core.FACE_POINTS],
-                                    dst_img, dst_matrix[core.FACE_POINTS])
+    dst_img = transformation_points(src_img=src_img, src_points=src_matrix[core.FACE_POINTS],
+                                    dst_img=dst_img, dst_points=dst_matrix[core.FACE_POINTS])
 
     trans_file = 'images/' + str(int(time.time() * 1000)) + '.jpg'
     cv2.imwrite(trans_file, dst_img)
@@ -195,7 +195,7 @@ def face_merge(dst_img, src_img, out_img,
 
     src_img = tran_src(src_img, src_points, dst_points, face_area)
 
-    dst_img = merge_img(src_img, dst_img, dst_matrix, dst_points, blur_detail_x, blur_detail_y, mat_multiple)
+    dst_img = merge_img(src_img, dst_img, dst_matrix, dst_points, k_size, mat_multiple)
 
     os.remove(trans_file)
     os.remove(trans_file + '.txt')
