@@ -1,6 +1,7 @@
 # 颜如玉
 
 颜如玉 —— python 人脸融合程序，可实现类似天天P图疯狂换脸、face++人脸融合效果
+在原文上修改了dlib关键点检测并写了批量化处理和视频合成
 
 # 项目描述
 
@@ -59,6 +60,7 @@ core.face_merge(src_img='images/model.jpg',
 - 使用Face++平台的人脸识别定位API（定位106个关键点）
 
 本文采用的是Face++的 api，因为商用情况下 Face++ 定位的定数最多
+由于Face++测试且免费不稳定，我将它换成了dlib的关键点
 
 ```
 // 获取两张图片的人脸关键点（矩阵格式与数组格式）
@@ -142,3 +144,30 @@ def merge_img(src_img, dst_img, dst_matrix, dst_points, k_size=None, mat_multipl
 
 ![步骤展示](/images/2282038-362be008f850ba22.jpg)
 
+### 六  batch 
+
+图片格式为input-%d.jpg or png
+```
+python -s ./source ./target -d ./output
+```
+注意:分辨率不一致时可能会计算错误
+
+
+ffmpeg -i output-%d.jpg -c:v libx264 -vf "fps=25,format=yuv420p" out.mp4
+
+
+ffmpeg操作:
+http://wowubuntu.com/7-tricks-with-ffmpeg.html
+
+设置截取间隔,起止
+
+-ss 设定时间位置,语法:hh:mm:ss[.xxx]
+
+-t 时长:限制转码/捕获视频的时间,语法:hh:mm:ss[.xxx]
+
+ffmpeg -i test.mpg -r 25 -ss 00:00:10 -t 00:00:05 images%05d.png
+
+
+
+图片生成视频
+ffmpeg -i video-frame-%0d.png -c:v libx264 -vf "fps=25,format=yuv420p" out.mp4

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2017/9/2 13:40
-# @Author  : 郑梓斌
 
 import cv2
 import numpy as np
-
+from time import time
 
 def draw_point(img, p, color):
     cv2.circle(img, (p[0], p[1]), 2, color, cv2.FILLED, cv2.LINE_AA, 0)
@@ -23,8 +22,13 @@ def rect_contains(rect, point):
 
 
 def measure_triangle(image, points):
+    
+    #test time 
+    start  = time()
+
     rect = (0, 0, image.shape[1], image.shape[0])
     sub_div = cv2.Subdiv2D(rect)
+
 
     for p in points:
         sub_div.insert(p)
@@ -53,15 +57,21 @@ def measure_triangle(image, points):
                 triangle.append((ind[0], ind[1], ind[2]))
 
         pt = []
-
+    stop = time()
+    print("triangle"+str(stop-start)+"秒")
     return triangle
 
 
+# Warps and alpha blends triangular regions from img1 and img2 to img
 def morph_triangle(src, dst, img, t_src, t_dst, t, alpha):
+    # Find bounding rectangle for each triangle
+
+
     r1 = cv2.boundingRect(np.float32([t_src]))
     r2 = cv2.boundingRect(np.float32([t_dst]))
     r = cv2.boundingRect(np.float32([t]))
 
+    # Offset points by left top corner of the respective rectangles
     t1_rect = []
     t2_rect = []
     t_rect = []
@@ -71,9 +81,11 @@ def morph_triangle(src, dst, img, t_src, t_dst, t, alpha):
         t1_rect.append(((t_src[i][0] - r1[0]), (t_src[i][1] - r1[1])))
         t2_rect.append(((t_dst[i][0] - r2[0]), (t_dst[i][1] - r2[1])))
 
+    # Get mask by filling triangle
     mask = np.zeros((r[3], r[2], 3), dtype=np.float32)
     cv2.fillConvexPoly(mask, np.int32(t_rect), (1.0, 1.0, 1.0), 16, 0)
 
+    # Apply warpImage to small rectangular patches
     img1_rect = src[r1[1]:r1[1] + r1[3], r1[0]:r1[0] + r1[2]]
     img2_rect = dst[r2[1]:r2[1] + r2[3], r2[0]:r2[0] + r2[2]]
 
@@ -82,10 +94,13 @@ def morph_triangle(src, dst, img, t_src, t_dst, t, alpha):
     warp_img1 = affine_transform(img1_rect, t1_rect, t_rect, size)
     warp_img2 = affine_transform(img2_rect, t2_rect, t_rect, size)
 
+    # Alpha blend rectangular patches
     img_rect = (1.0 - alpha) * warp_img1 + alpha * warp_img2
 
+    # Copy triangular region of the rectangular patch to the output image
     img[r[1]:r[1] + r[3], r[0]:r[0] + r[2]] = img[r[1]:r[1] + r[3], r[0]:r[0] + r[2]] * (1 - mask) + img_rect * mask
 
+    
 
 def affine_triangle(src, dst, t_src, t_dst):
     r1 = cv2.boundingRect(np.float32([t_src]))
@@ -114,10 +129,16 @@ def affine_triangle(src, dst, t_src, t_dst):
         (1.0, 1.0, 1.0) - mask)
 
     dst[r2[1]:r2[1] + r2[3], r2[0]:r2[0] + r2[2]] = dst[r2[1]:r2[1] + r2[3], r2[0]:r2[0] + r2[2]] + img2_rect
-
+   
+    # if len(rects) > 1:
+    #     raise  TooManyFace
+    # if len(rects) ==0:
+    #     raise NoFaces
 
 def affine_transform(src, src_tri, dst_tri, size):
     warp_mat = cv2.getAffineTransform(np.float32(src_tri), np.float32(dst_tri))
+    
+    dst = np.zeros(size,dtype = src.dtype)
 
     dst = cv2.warpAffine(src, warp_mat, (size[0], size[1]),
                          None,
@@ -125,3 +146,4 @@ def affine_transform(src, src_tri, dst_tri, size):
                          borderMode=cv2.BORDER_REFLECT_101)
 
     return dst
+
